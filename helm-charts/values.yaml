@@ -77,8 +77,8 @@ wso2:
             failureThreshold: 5
           strategy: Recreate
           replicas: 1
-          imagePullPolicy: Always
-          image: wso2/devportal-domain-service:0.0.1-m11
+          imagePullPolicy: Never
+          image: devportal-domain-service:0.0.1-SNAPSHOT
       admin:
         deployment:
           resources:
@@ -98,8 +98,8 @@ wso2:
             failureThreshold: 5
           strategy: Recreate
           replicas: 1
-          imagePullPolicy: Always
-          image: wso2/admin-domain-service:0.0.1-m11
+          imagePullPolicy: Never
+          image: admin-domain-service:0.0.1-SNAPSHOT
       backoffice:
         deployment:
           resources:
@@ -119,8 +119,8 @@ wso2:
             failureThreshold: 5
           strategy: Recreate
           replicas: 1
-          imagePullPolicy: Always
-          image: wso2/backoffice-domain-service:0.0.1-m11
+          imagePullPolicy: Never
+          image: backoffice-domain-service:0.0.1-SNAPSHOT
       managementServer:
         deployment:
           resources:
@@ -132,8 +132,8 @@ wso2:
               cpu: "1000m"
           strategy: Recreate
           replicas: 1
-          imagePullPolicy: Always
-          image: wso2/management-server:0.0.1-m11
+          imagePullPolicy: Never
+          image: management-server:0.0.1-SNAPSHOT
           readinessProbe:
             initialDelaySeconds: 20
             periodSeconds: 20
@@ -193,8 +193,8 @@ wso2:
             failureThreshold: 5
           strategy: Recreate
           replicas: 1
-          imagePullPolicy: Always
-          image: wso2/runtime-domain-service:0.0.1-m11
+          imagePullPolicy: Never
+          image: runtime-domain-service:0.0.1-SNAPSHOT
           # configs:
           #   authrorization: true
           #   baseUrl: "https://api.am.wso2.com:9095/api/runtime"
@@ -221,8 +221,8 @@ wso2:
             failureThreshold: 5
           strategy: Recreate
           replicas: 1
-          imagePullPolicy: Always
-          image: wso2/config-deployer-service:latest
+          imagePullPolicy: Never
+          image: config-deployer-service:0.0.1-SNAPSHOT
           # configs:
           #   tls:
           #     secretName: "my-secret"
@@ -247,8 +247,8 @@ wso2:
             failureThreshold: 5
           strategy: Recreate
           replicas: 1
-          imagePullPolicy: Always
-          image: wso2/adapter:0.0.1-m11
+          imagePullPolicy: Never
+          image: adapter:0.0.1-SNAPSHOT
           security:
             sslHostname: "adapter"
 #        logging:
@@ -282,8 +282,8 @@ wso2:
             failureThreshold: 5
           strategy: Recreate
           replicas: 1
-          imagePullPolicy: Always
-          image: wso2/ratelimiter:0.0.1-m11
+          imagePullPolicy: Never
+          image: ratelimiter:0.0.1-SNAPSHOT
           security:
             sslHostname: "ratelimiter"
           # configs:
@@ -312,8 +312,8 @@ wso2:
               periodSeconds: 20
               failureThreshold: 5
             strategy: Recreate
-            imagePullPolicy: Always
-            image: wso2/router:0.0.1-m11
+            imagePullPolicy: Never
+            image: router:0.0.1-SNAPSHOT
             # configs:
             #   tls:
             #     secretName: "router-cert"
@@ -342,8 +342,8 @@ wso2:
               periodSeconds: 20
               failureThreshold: 5
             strategy: Recreate
-            imagePullPolicy: Always
-            image: wso2/enforcer:0.0.1-m11
+            imagePullPolicy: Never
+            image: enforcer:0.0.1-SNAPSHOT
             security:
               sslHostname: "enforcer"
 #            logging:
@@ -406,8 +406,8 @@ idp:
         failureThreshold: 5
       strategy: Recreate
       replicas: 1
-      imagePullPolicy: Always
-      image: wso2/idp-domain-service:0.0.1-m11
+      imagePullPolicy: Never
+      image: idp-domain-service:0.0.1-SNAPSHOT
   idpui:
     deployment:
       resources:
@@ -427,8 +427,8 @@ idp:
         failureThreshold: 5
       strategy: Recreate
       replicas: 1
-      imagePullPolicy: Always
-      image: wso2/idp-ui:0.0.1-m11
+      imagePullPolicy: Never
+      image: idp-ui:0.0.1-SNAPSHOT
     configs:
       idpLoginUrl: "https://idp.am.wso2.com:9095/commonauth/login"
       idpAuthCallBackUrl: "https://idp.am.wso2.com:9095/oauth2/auth-callback"

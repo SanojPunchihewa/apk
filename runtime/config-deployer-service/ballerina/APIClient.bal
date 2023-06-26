@@ -107,6 +107,10 @@ public class APIClient {
             } else {
                 return e9090445();
             }
+            // CORSConfiguration? corsConfiguration = apkConf.corsConfiguration;
+            // if authentication is CORSConfiguration[] {
+            //     self.populateAuthenticationMap(apiArtifact, apkConf, authentication, createdEndpoints, organization);
+            // }
             json generatedSwagger = check self.retrieveGeneratedSwaggerDefinition(apkConf, definition);
             check self.retrieveGeneratedConfigmapForDefinition(apiArtifact, apkConf, generatedSwagger, uniqueId, organization);
             self.generateAndSetAPICRArtifact(apiArtifact, apkConf, organization);
@@ -332,18 +336,25 @@ public class APIClient {
     }
 
     private isolated function generateAndSetPolicyCRArtifact(model:APIArtifact apiArtifact, APKConf apkConf, string organization) {
+        log:printWarn("generateAndSetPolicyCRArtifact:-----------");
         if apkConf.apiRateLimit != () {
             model:RateLimitPolicy? rateLimitPolicyCR = self.generateRateLimitPolicyCR(apkConf, apkConf.apiRateLimit, apiArtifact.uniqueId, (), organization);
             if rateLimitPolicyCR != () {
                 apiArtifact.rateLimitPolicies[rateLimitPolicyCR.metadata.name] = rateLimitPolicyCR;
             }
         }
-        if apkConf.apiPolicies != () {
+        if apkConf.apiPolicies != () || apkConf.corsConfiguration != () {
             model:APIPolicy? apiPolicyCR = self.generateAPIPolicyAndBackendCR(apiArtifact, apkConf, (), apkConf.apiPolicies, organization, apiArtifact.uniqueId);
             if apiPolicyCR != () {
                 apiArtifact.apiPolicies[apiPolicyCR.metadata.name] = apiPolicyCR;
             }
         }
+        // if apkConf.corsConfiguration != () {
+        //     model:APIPolicy? apiPolicyCR = self.generateCORSPolicyCR(apiArtifact, apkConf, (), apkConf.corsConfiguration, organization, apiArtifact.uniqueId);
+        //     if apiPolicyCR != () {
+        //         apiArtifact.apiPolicies[apiPolicyCR.metadata.name] = apiPolicyCR;
+        //     }
+        // }
     }
 
     private isolated function populateAuthenticationMap(model:APIArtifact apiArtifact, APKConf apkConf, Authentication[] authentications,
@@ -580,6 +591,7 @@ public class APIClient {
     }
 
     private isolated function generateAPIPolicyAndBackendCR(model:APIArtifact apiArtifact, APKConf apkConf, APKOperations? operations, APIOperationPolicies? policies, string organization, string targetRefName) returns model:APIPolicy? {
+        log:printWarn("generateAPIPolicyAndBackendCR:-----------");
         model:APIPolicyData defaultSpecData = {};
         APKOperationPolicy[]? request = policies?.request;
         model:InterceptorReference? requestInterceptor = self.retrieveAPIPolicyDetails(apiArtifact, apkConf, operations, organization, request, "request");
@@ -591,6 +603,18 @@ public class APIClient {
         if responseInterceptor is model:InterceptorReference {
             defaultSpecData.responseInterceptors = [responseInterceptor];
         }
+        CORSConfiguration? corsConfiguration = apkConf.corsConfiguration;
+        if corsConfiguration is CORSConfiguration {
+            log:printWarn("CORSConfiguration: " + corsConfiguration.toString());
+            model:CORSPolicy? cORSPolicy = self.retrieveCORSPolicyDetails(apiArtifact, apkConf, corsConfiguration, organization);
+            if cORSPolicy is model:CORSPolicy {
+                defaultSpecData.cORSPolicy = cORSPolicy;
+            }
+        }
+        // model:CORSPolicy? cORSPolicy = self.retrieveCORSPolicyDetails(apiArtifact, apkConf, organization);
+        // if cORSPolicy is model:CORSPolicy {
+        //     defaultSpecData.cORSPolicy = cORSPolicy;
+        // }
         if defaultSpecData != {} {
             model:APIPolicy? apiPolicyCR = self.generateAPIPolicyCR(apkConf, targetRefName, operations, organization, defaultSpecData);
             if apiPolicyCR != () {
@@ -599,6 +623,21 @@ public class APIClient {
         }
         return ();
     }
+
+    // private isolated function generateCORSPolicyCR(model:APIArtifact apiArtifact, APKConf apkConf, APKOperations? operations, CORSConfiguration? corsConfiguration, string organization, string targetRefName) returns model:APIPolicy? {
+    //     model:APIPolicyData defaultSpecData = {};
+    //     model:CORSPolicy? cORSPolicy = self.retrieveAPIPolicyDetails(apiArtifact, apkConf, operations, organization, request, "request");
+    //     if cORSPolicy is model:CORSPolicy {
+    //         defaultSpecData.cORSPolicy = [cORSPolicy];
+    //     }
+    //     if defaultSpecData != {} {
+    //         model:APIPolicy? apiPolicyCR = self.generateAPIPolicyCR(apkConf, targetRefName, operations, organization, defaultSpecData);
+    //         if apiPolicyCR != () {
+    //             return apiPolicyCR;
+    //         }
+    //     }
+    //     return ();
+    // }
 
     private isolated function generateScopeCR(model:APIArtifact apiArtifact, APKConf apkConf, string organization, string scope) returns model:Scope {
         string scopeName = uuid:createType1AsString();
@@ -1084,6 +1123,49 @@ public class APIClient {
         }
         return ();
     }
+
+    isolated function retrieveCORSPolicyDetails(model:APIArtifact apiArtifact, APKConf apkConf, CORSConfiguration corsConfiguration, string organization) returns model:CORSPolicy? {
+        model:CORSPolicy corsPolicy = {};
+        if corsConfiguration.corsConfigurationEnabled is boolean {
+            corsPolicy.enabled = <boolean>corsConfiguration.corsConfigurationEnabled;
+        }
+        if corsConfiguration.accessControlAllowCredentials is boolean {
+            corsPolicy.accessControlAllowCredentials = <boolean>corsConfiguration.accessControlAllowCredentials;
+        }
+        if corsConfiguration.accessControlAllowOrigins is string[] {
+            log:printWarn("accessControlAllowOrigins: " + corsConfiguration.accessControlAllowOrigins.toString());
+            corsPolicy.accessControlAllowOrigins = <string[]>corsConfiguration.accessControlAllowOrigins;
+        }
+        if corsConfiguration.accessControlAllowHeaders is string[] {
+            corsPolicy.accessControlAllowHeaders = <string[]>corsConfiguration.accessControlAllowHeaders;
+        }
+        if corsConfiguration.accessControlAllowMethods is string[] {
+            corsPolicy.accessControlAllowMethods = <string[]>corsConfiguration.accessControlAllowMethods;
+        }
+        if corsConfiguration.accessControlAllowMaxAge is int {
+
+        } 
+        return corsPolicy;
+    }
+
+    // public isolated function generateCORSPolicyCR(APKConf apkConf, string targetRefName, APKOperations? operation, string organization, model:APIPolicyData policyData) returns model:APIPolicy? {
+    //     model:APIPolicy? apiPolicyCR = ();
+    //     apiPolicyCR = {
+    //         metadata: {
+    //             name: self.retrieveAPIPolicyRefName(),
+    //             labels: self.getLabels(apkConf, organization)
+    //         },
+    //         spec: {
+    //             override: policyData,
+    //             targetRef: {
+    //                 group: "dp.wso2.com",
+    //                 kind: "API",
+    //                 name: targetRefName
+    //             }
+    //         }
+    //     };
+    //     return apiPolicyCR;
+    // }
 
     isolated function generateInterceptorServiceCR(record {} parameters, string interceptorBackend, string flow, APKConf apkConf, string organization) returns model:InterceptorService? {
         model:InterceptorService? interceptorServiceCR = ();
